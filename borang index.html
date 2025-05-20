@@ -1,42 +1,169 @@
-<!-- Letak selepas </form> -->
-<h3>Rekod Pemeriksaan Terkini:</h3>
-<div id="result"></div>
-
-<script>
-  const form = document.getElementById('borangKesihatan');
-  const resultDiv = document.getElementById('result');
-
-  function paparRekod() {
-    const rekod = JSON.parse(localStorage.getItem('rekodKesihatan') || '[]');
-    if (rekod.length === 0) {
-      resultDiv.innerHTML = '<p>Tiada rekod ditemui.</p>';
-      return;
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Borang Pemeriksaan Harian</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f7f7f7;
     }
-    let html = '<ul>';
-    rekod.forEach((r, i) => {
-      html += `<li><strong>${r.nama}</strong> (${r.tarikh}) - Jabatan: ${r.jabatan}<br>
-               Gejala: ${r.gejala.length ? r.gejala.join(', ') : 'Tiada'}</li>`;
+    h2, h3 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .gejala {
+      margin-top: 5px;
+    }
+    .gejala input {
+      margin-right: 8px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .submit-btn {
+      background-color: #3498db;
+      color: white;
+    }
+    .reset-btn {
+      background-color: #e74c3c;
+      color: white;
+      margin-left: 10px;
+    }
+    #result {
+      max-width: 500px;
+      margin: 30px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    #result ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    #result li {
+      background: #ecf0f1;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Borang Pemeriksaan Harian</h2>
+  <form id="borangKesihatan">
+    <label>Nama Pekerja:</label>
+    <input type="text" name="nama" required />
+
+    <label>Tarikh:</label>
+    <input type="date" name="tarikh" required />
+
+    <label>Jabatan:</label>
+    <select name="jabatan" required>
+      <option value="">-- Sila Pilih --</option>
+      <option value="Rangkaian">Rangkaian</option>
+      <option value="Sokongan Teknikal">Sokongan Teknikal</option>
+      <option value="Pentadbiran">Pentadbiran</option>
+    </select>
+
+    <label><strong>Gejala:</strong></label>
+    <div class="gejala">
+      <input type="checkbox" name="gejala" value="Batuk" /> Batuk<br />
+      <input type="checkbox" name="gejala" value="Selsema" /> Selsema<br />
+      <input type="checkbox" name="gejala" value="Sakit tekak" /> Sakit tekak<br />
+      <input type="checkbox" name="gejala" value="Sesak nafas" /> Sesak nafas<br />
+      <input type="checkbox" name="gejala" value="Demam" /> Demam<br />
+      <input type="checkbox" name="gejala" value="Hilang deria bau/rasa" /> Hilang deria bau/rasa<br />
+      <input type="checkbox" name="gejala" value="Tiada sebarang gejala" /> Tiada sebarang gejala
+    </div>
+
+    <button type="submit" class="submit-btn">Hantar</button>
+    <button type="reset" class="reset-btn">Reset</button>
+  </form>
+
+  <h3>Rekod Pemeriksaan Terkini:</h3>
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('borangKesihatan');
+    const resultDiv = document.getElementById('result');
+
+    function paparRekod() {
+      const rekod = JSON.parse(localStorage.getItem('rekodKesihatan') || '[]');
+      if (rekod.length === 0) {
+        resultDiv.innerHTML = '<p>Tiada rekod ditemui.</p>';
+        return;
+      }
+      let html = '<ul>';
+      rekod.forEach((r, i) => {
+        html += `<li><strong>${r.nama}</strong> (${r.tarikh}) - Jabatan: ${r.jabatan}<br />
+                 Gejala: ${r.gejala.length ? r.gejala.join(', ') : 'Tiada'}</li>`;
+      });
+      html += '</ul>';
+      resultDiv.innerHTML = html;
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Pastikan "Tiada sebarang gejala" tidak bercampur dengan yang lain
+      const gejalaCheckboxes = form.querySelectorAll('input[name="gejala"]');
+      const checkedGejala = Array.from(gejalaCheckboxes).filter(cb => cb.checked);
+      const adaTiadaGejala = checkedGejala.some(cb => cb.value === "Tiada sebarang gejala");
+
+      if (adaTiadaGejala && checkedGejala.length > 1) {
+        alert('Jika memilih "Tiada sebarang gejala", jangan pilih gejala lain.');
+        return;
+      }
+
+      const data = {
+        nama: this.nama.value,
+        tarikh: this.tarikh.value,
+        jabatan: this.jabatan.value,
+        gejala: checkedGejala.map(cb => cb.value)
+      };
+
+      let rekod = JSON.parse(localStorage.getItem('rekodKesihatan') || '[]');
+      rekod.push(data);
+      localStorage.setItem('rekodKesihatan', JSON.stringify(rekod));
+
+      alert('Rekod berjaya disimpan!');
+      this.reset();
+      paparRekod();
     });
-    html += '</ul>';
-    resultDiv.innerHTML = html;
-  }
 
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const data = {
-      nama: this.nama.value,
-      tarikh: this.tarikh.value,
-      jabatan: this.jabatan.value,
-      gejala: Array.from(this.querySelectorAll('input[name="gejala"]:checked')).map(cb => cb.value)
-    };
-    let rekod = JSON.parse(localStorage.getItem('rekodKesihatan') || '[]');
-    rekod.push(data);
-    localStorage.setItem('rekodKesihatan', JSON.stringify(rekod));
-    alert('Rekod berjaya disimpan!');
-    this.reset();
+    // Papar rekod bila page load
     paparRekod();
-  });
-
-  // Papar rekod bila page load
-  paparRekod();
-</script>
+  </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!-- Letak selepas </form> -->
+<h3>Rekod Pemeriksaan Terkini:</h3>
+<div id="result"></div>
+
+<script>
+  const form = document.getElementById('borangKesihatan');
+  const resultDiv = document.getElementById('result');
+
+  function paparRekod() {
+    const rekod = JSON.parse(localStorage.getItem('rekodKesihatan') || '[]');
+    if (rekod.length === 0) {
+      resultDiv.innerHTML = '<p>Tiada rekod ditemui.</p>';
+      return;
+    }
+    let html = '<ul>';
+    rekod.forEach((r, i) => {
+      html += `<li><strong>${r.nama}</strong> (${r.tarikh}) - Jabatan: ${r.jabatan}<br>
+               Gejala: ${r.gejala.length ? r.gejala.join(', ') : 'Tiada'}</li>`;
+    });
+    html += '</ul>';
+    resultDiv.innerHTML = html;
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = {
+      nama: this.nama.value,
+      tarikh: this.tarikh.value,
+      jabatan: this.jabatan.value,
+      gejala: Array.from(this.querySelectorAll('input[name="gejala"]:checked')).map(cb => cb.value)
+    };
+    let rekod = JSON.parse(localStorage.getItem('rekodKesihatan') || '[]');
+    rekod.push(data);
+    localStorage.setItem('rekodKesihatan', JSON.stringify(rekod));
+    alert('Rekod berjaya disimpan!');
+    this.reset();
+    paparRekod();
+  });
+
+  // Papar rekod bila page load
+  paparRekod();
+</script>
